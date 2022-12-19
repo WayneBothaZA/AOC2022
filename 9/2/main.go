@@ -44,30 +44,34 @@ func ProcessMoves(moves []Move) {
 	// record that we were at the start
 	tailKey[tail] = true
 
-	for _, m := range moves {
-		// fmt.Printf("%s %d %s %s = ", m.direction, m.count, head, tail)
+	for x, m := range moves {
 		var _head *Location
 		var _tail *Location
 
-		for t := 0; t < len(tails); t++ {
+		fmt.Println()
+		fmt.Printf("%d: %s %d\n", x+1, m.direction, m.count)
 
-			if t == 0 {
-				_head = &head
-			} else {
-				_head = &tails[t-1]
-			}
-			_tail = &tails[t]
+		for i := 0; i < m.count; i++ {
+			for t := 0; t < len(tails); t++ {
+				if t == 0 {
+					_head = &head
+				} else {
+					_head = &tails[t-1]
+				}
+				_tail = &tails[t]
 
-			for i := 0; i < m.count; i++ {
-				switch m.direction {
-				case "R":
-					_head.x++
-				case "L":
-					_head.x--
-				case "U":
-					_head.y++
-				case "D":
-					_head.y--
+				// only move head on first round...
+				if t == 0 {
+					switch m.direction {
+					case "R":
+						_head.x++
+					case "L":
+						_head.x--
+					case "U":
+						_head.y++
+					case "D":
+						_head.y--
+					}
 				}
 
 				if math.Abs(_head.x-_tail.x) == 2 {
@@ -95,15 +99,16 @@ func ProcessMoves(moves []Move) {
 				if t == len(tails)-1 {
 					if _, ok := tailKey[*_tail]; !ok {
 						tailKey[*_tail] = true
+						fmt.Printf("# %s\n", *_tail)
 					}
 				}
 			}
+			fmt.Printf("%d:\n", i+1)
+			fmt.Printf("head:    %s\n", head)
+			for i := 0; i < len(tails); i++ {
+				fmt.Printf("tails[%d] %s\n", i+1, tails[i])
+			}
 		}
-		// fmt.Printf("%s %s\n\n", head, tail)
-	}
-
-	for i := 0; i < len(tails); i++ {
-		fmt.Printf("%d %s\n", i+1, tails[i])
 	}
 
 	fmt.Println(len(tailKey))
@@ -136,6 +141,6 @@ func LoadMoves(filePath string) (moves []Move) {
 }
 
 func main() {
-	moves := LoadMoves("../sample3.txt")
+	moves := LoadMoves("../sample.txt")
 	ProcessMoves(moves)
 }
