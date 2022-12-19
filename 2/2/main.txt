@@ -1,0 +1,155 @@
+package main
+
+import (
+	"fmt"
+	"io"
+	"os"
+)
+
+const (
+	Rock     int = 1
+	Paper        = 2
+	Scissors     = 3
+)
+
+const (
+	Loose int = 0
+	Draw      = 3
+	Win       = 6
+)
+
+func CalcMyItem(o_item, m_result int) int {
+	switch o_item {
+	case Rock:
+		switch m_result {
+		case Loose:
+			return Scissors
+		case Draw:
+			return Rock
+		case Win:
+			return Paper
+		default:
+			panic(fmt.Sprintf("CalcWinner %d,%d", o_item, m_result))
+		}
+	case Paper:
+		switch m_result {
+		case Loose:
+			return Rock
+		case Draw:
+			return Paper
+		case Win:
+			return Scissors
+		default:
+			panic(fmt.Sprintf("CalcWinner %d,%d", o_item, m_result))
+		}
+	case Scissors:
+		switch m_result {
+		case Loose:
+			return Paper
+		case Draw:
+			return Scissors
+		case Win:
+			return Rock
+		default:
+			panic(fmt.Sprintf("CalcWinner %d,%d", o_item, m_result))
+		}
+	}
+	panic(fmt.Sprintf("CalcWinner %d, %d", o_item, m_result))
+}
+
+func CalcScore(o_item, m_result int) (int, int) {
+	var m_item int
+	var o_score, m_score int
+
+	switch o_item {
+	case Rock:
+		o_score = 1
+	case Paper:
+		o_score = 2
+	case Scissors:
+		o_score = 3
+	default:
+		panic(fmt.Sprintf("CalcScore o_item %d", o_item))
+	}
+
+	m_item = CalcMyItem(o_item, m_result)
+
+	switch m_item {
+	case Rock:
+		m_score = 1
+	case Paper:
+		m_score = 2
+	case Scissors:
+		m_score = 3
+	default:
+		panic(fmt.Sprintf("CalcScore m_item %d", o_item))
+	}
+
+	winner := m_result
+
+	switch winner {
+	case Draw:
+		o_score += 3
+		m_score += 3
+	case Loose:
+		o_score += 6
+	case Win:
+		m_score += 6
+	default:
+		panic(fmt.Sprintf("CalcScore %d", winner))
+	}
+
+	return o_score, m_score
+}
+
+func readFile(filePath string) {
+	var o_total int = 0
+	var m_total int = 0
+
+	fd, err := os.Open(filePath)
+	if err != nil {
+		panic(fmt.Sprintf("open %s: %v", filePath, err))
+	}
+	for {
+		var o, m string
+		var o_item, m_result int
+
+		_, err := fmt.Fscanf(fd, "%s %s\n", &o, &m)
+
+		switch o {
+		case "A":
+			o_item = Rock
+		case "B":
+			o_item = Paper
+		case "C":
+			o_item = Scissors
+		}
+
+		switch m {
+		case "X":
+			m_result = Loose
+		case "Y":
+			m_result = Draw
+		case "Z":
+			m_result = Win
+		}
+
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return
+		}
+
+		o_score, m_score := CalcScore(o_item, m_result)
+
+		fmt.Printf("%d,%d,%d,%d,%d,%d\n", o_item, m_result, o_score, m_score, o_total, m_total)
+		o_total += o_score
+		m_total += m_score
+	}
+	fmt.Printf("%d,%d\n", o_total, m_total)
+}
+
+func main() {
+	readFile("../strategy.txt")
+}
