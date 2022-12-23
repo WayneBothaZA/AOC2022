@@ -130,7 +130,6 @@ func LoadRoute(filePath string) (route []Direction) {
 
 		var start int = -1
 		for i, b := range line {
-			fmt.Printf("? %d: %c, %d\n", i, b, start)
 			if unicode.IsDigit(b) {
 				if start == -1 {
 					start = i
@@ -141,10 +140,8 @@ func LoadRoute(filePath string) (route []Direction) {
 					d.direction = move
 					d.count, _ = strconv.Atoi(number)
 					start = -1
-					fmt.Printf("-- %v -- \n", d)
 					route = append(route, d)
 				}
-				fmt.Printf("- %c - \n", b)
 				if b == 'R' {
 					d.direction = right
 					d.count = 0
@@ -152,7 +149,6 @@ func LoadRoute(filePath string) (route []Direction) {
 					d.direction = left
 					d.count = 0
 				}
-				fmt.Printf("|| %v -- \n", d)
 				route = append(route, d)
 			}
 		}
@@ -162,7 +158,6 @@ func LoadRoute(filePath string) (route []Direction) {
 			d.count, _ = strconv.Atoi(number)
 			route = append(route, d)
 		}
-		fmt.Println()
 	}
 
 	return route
