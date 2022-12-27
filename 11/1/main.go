@@ -252,7 +252,7 @@ func LoadPuzzle() {
 }
 
 func main() {
-	// LoadSample()
-	LoadPuzzle()
+	LoadSample()
+	// LoadPuzzle()
 	ProcessMonkeys()
 }

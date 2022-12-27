@@ -30,26 +30,7 @@ type Tile struct {
 	t int
 	x int
 	y int
-}
-
-func (t Tile) Type() string {
-	switch t.t {
-	case RIGHT:
-		return fmt.Sprintf(">")
-	case LEFT:
-		return fmt.Sprintf("<")
-	case UP:
-		return fmt.Sprintf("^")
-	case DOWN:
-		return fmt.Sprintf("v")
-	case BLANK:
-		return fmt.Sprintf(" ")
-	case TILE:
-		return fmt.Sprintf(".")
-	case WALL:
-		return fmt.Sprintf("#")
-	}
-	return fmt.Sprintf("?")
+	z int
 }
 
 func (t Tile) String() string {
@@ -70,6 +51,15 @@ func (t Tile) String() string {
 		return fmt.Sprintf("#")
 	}
 	return fmt.Sprintf("?")
+}
+
+func (t Tile) zString() string {
+	if t.z == 0 {
+		return fmt.Sprintf(" ")
+
+	} else {
+		return fmt.Sprintf("%d", t.z)
+	}
 }
 
 var instructions []Instruction
@@ -123,41 +113,41 @@ func CalcIncrements(dir int) (x_inc, y_inc int) {
 	return x_inc, y_inc
 }
 
+func TurnEdge(x, y, x_inc, y_inc *int) {
+	if *y == len(tiles) {
+		*y = 0
+	}
+	if *y == -1 {
+		*y = len(tiles) - 1
+	}
+
+	if *x == len(tiles[*y]) {
+		*x = 0
+	}
+
+	if *x == -1 {
+		*x = len(tiles[*y]) - 1
+	}
+}
+
 func FindFirstTile(start_x int, start_y int, dir int) (x, y int) {
 	x = start_x
 	y = start_y
 	x_inc, y_inc := CalcIncrements(dir)
 
 	for {
-		fmt.Printf("Find first tile at (%d,%d) is [%s]\n", x, y, tiles[y][x])
+		// fmt.Printf("Find first tile at (%d,%d) is [%s]\n", x, y, tiles[y][x])
 
 		// return the first tile we find in that line
 		if tiles[y][x].t != BLANK {
-			fmt.Printf("First tile at (%d, %d)\n", x, y)
+			// fmt.Printf("First tile at (%d, %d)\n", x, y)
 			return x, y
 		}
 
 		x += x_inc
 		y += y_inc
 
-		if y == len(tiles) {
-			y = 0
-		}
-		if y == -1 {
-			y = len(tiles)-1
-		}
-
-		if (y == -1) {
-			y = len(tiles)-1
-		}
-
-		if x == len(tiles[y]) {
-			x = 0
-		}
-
-		if x == -1 {
-			x = len(tiles[y])-1
-		}
+		TurnEdge(&x, &y, &x_inc, &y_inc)
 	}
 }
 
@@ -270,6 +260,7 @@ func WalkMap() {
 	var x, y int
 	var dir int
 
+	PrintZone(tiles)
 	PrintMap(tiles)
 
 	// find starting tile, face right starting from 0,0
@@ -293,8 +284,8 @@ func WalkMap() {
 		// PrintMap(tiles)
 	}
 
-	// fmt.Println()
-	// PrintMap(tiles)
+	fmt.Println()
+	PrintMap(tiles)
 
 	fmt.Printf("%d\n", (y+1)*1000+(x+1)*4+dir)
 }
@@ -305,6 +296,58 @@ func PrintMap(tiles [][]Tile) {
 			fmt.Print(t)
 		}
 		fmt.Println()
+	}
+}
+
+func PrintZone(tiles [][]Tile) {
+	for _, tline := range tiles {
+		for _, t := range tline {
+			fmt.Print(t.zString())
+		}
+		fmt.Println()
+	}
+}
+
+func LoadZones(filePath string) {
+	fd, err := os.Open(filePath)
+	if err != nil {
+		panic(fmt.Sprintf("os.Open %s: %v", filePath, err))
+	}
+	defer fd.Close()
+
+	scanner := bufio.NewScanner(fd)
+
+	y := 0
+	for scanner.Scan() {
+		var t *Tile
+		var tline []Tile
+		var line string = scanner.Text()
+
+		x := 0
+		for _, b := range line {
+			t = &tiles[y][x]
+
+			switch b {
+			case ' ':
+				t.z = 0
+			default:
+				t.z = int(b - '0')
+			}
+			t.x = x + 1
+			t.y = y + 1
+
+			x++
+		}
+		// pad lines with blank tiles
+		for ; x < 150; x++ {
+			var t Tile
+			t.x = x + 1
+			t.y = y + 1
+			t.t = BLANK
+			t.z = 0
+			tline = append(tline, t)
+		}
+		y++
 	}
 }
 
@@ -342,12 +385,14 @@ func LoadMap(filePath string) (tiles [][]Tile) {
 			x++
 		}
 		// pad lines with blank tiles
-		for ; x < 150; x++ {
-			t.x = x + 1
-			t.y = y + 1
-			t.t = BLANK
-			tline = append(tline, t)
-		}
+		/*
+			for ; x < 150; x++ {
+				t.x = x + 1
+				t.y = y + 1
+				t.t = BLANK
+				tline = append(tline, t)
+			}
+		*/
 		y++
 
 		tiles = append(tiles, tline)
@@ -413,9 +458,10 @@ func LoadRoute(filePath string) (route []Instruction) {
 }
 
 func main() {
-	// tiles = LoadMap("../sample_map.txt")
-	// instructions = LoadRoute("../sample_route.txt")
-	tiles = LoadMap("../puzzle_map.txt")
-	instructions = LoadRoute("../puzzle_route.txt")
+	tiles = LoadMap("../sample_map.txt")
+	LoadZones("../sample_zones.txt")
+	instructions = LoadRoute("../sample_route.txt")
+	// tiles = LoadMap("../puzzle_map.txt")
+	// instructions = LoadRoute("../puzzle_route.txt")
 	WalkMap()
 }
