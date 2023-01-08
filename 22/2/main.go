@@ -114,26 +114,14 @@ func CalcIncrements(dir int) (x_inc, y_inc int) {
 }
 
 func TurnEdge(x, y, x_inc, y_inc *int) {
-	if *y == len(tiles) {
-		*y = 0
-	}
-	if *y == -1 {
-		*y = len(tiles) - 1
-	}
-
-	if *x == len(tiles[*y]) {
-		*x = 0
-	}
-
-	if *x == -1 {
-		*x = len(tiles[*y]) - 1
-	}
 }
 
-func FindFirstTile(start_x int, start_y int, dir int) (x, y int) {
+func FindFirstTile(start_x, start_y, start_dir int) (x, y, dir int) {
+	x_inc, y_inc := CalcIncrements(dir)
+
+	dir = start_dir
 	x = start_x
 	y = start_y
-	x_inc, y_inc := CalcIncrements(dir)
 
 	for {
 		// fmt.Printf("Find first tile at (%d,%d) is [%s]\n", x, y, tiles[y][x])
@@ -141,24 +129,37 @@ func FindFirstTile(start_x int, start_y int, dir int) (x, y int) {
 		// return the first tile we find in that line
 		if tiles[y][x].t != BLANK {
 			// fmt.Printf("First tile at (%d, %d)\n", x, y)
-			return x, y
+			return x, y, dir
 		}
 
 		x += x_inc
 		y += y_inc
 
-		TurnEdge(&x, &y, &x_inc, &y_inc)
+		if y == len(tiles) {
+			y = 0
+		}
+		if y == -1 {
+			y = len(tiles) - 1
+		}
+
+		if x == len(tiles[y]) {
+			x = 0
+		}
+
+		if x == -1 {
+			x = len(tiles[y]) - 1
+		}
 	}
 }
 
 func Teleport(start_x int, start_y int, start_dir int) (x int, y int, dir int) {
 	x_inc, y_inc := CalcIncrements(start_dir)
-	dir = start_dir
 
 	x = start_x + x_inc
 	y = start_y + y_inc
+	dir = start_dir
 
-	fmt.Printf("TELEPORT %s from (%d, %d)\n", DirStr(start_dir), start_x, start_y)
+	fmt.Printf("TELEPORT %s from (%d, %d) [%d]\n", DirStr(start_dir), start_x, start_y, tiles[start_y][start_x].z)
 	fmt.Printf("TELEPORT checking (%d, %d)\n", x, y)
 	if start_dir == UP && y < 0 {
 		y = len(tiles) - 1
@@ -174,7 +175,7 @@ func Teleport(start_x int, start_y int, start_dir int) (x int, y int, dir int) {
 
 	if tiles[y][x].t == BLANK {
 		fmt.Printf("TELEPORT BLANK, find first tile (%d, %d)\n", x, y)
-		x, y = FindFirstTile(x, y, dir)
+		x, y, dir = FindFirstTile(x, y, dir)
 	}
 
 	if tiles[y][x].t == WALL {
@@ -191,30 +192,30 @@ func FindNextTile(start_x, start_y, start_dir int) (x, y, dir int) {
 	next_x := start_x + x_inc
 	next_y := start_y + y_inc
 
-	// fmt.Printf("Checking (%d, %d)\n", next_x, next_y)
+	fmt.Printf("Checking (%d, %d)\n", next_x, next_y)
 
-	// map check boundaries
+	// map edge boundaries
 	if next_y < 0 || next_x < 0 || next_y == len(tiles) || next_x == len(tiles[y]) {
-		// fmt.Printf("BOUNDARY, teleport...\n")
+		fmt.Printf("BOUNDARY, teleport...\n")
 		next_x, next_y, dir = Teleport(start_x, start_y, start_dir)
 	}
 
 	if tiles[next_y][next_x].t == BLANK {
-		// fmt.Printf("BLANK, teleport...\n")
+		fmt.Printf("BLANK, teleport...\n")
 		next_x, next_y, dir = Teleport(start_x, start_y, start_dir)
 	}
 
 	if tiles[next_y][next_x].t == WALL {
-		// fmt.Printf("WALL, stay at (%d, %d)\n", start_x, start_y)
+		fmt.Printf("WALL, stay at (%d, %d)\n", start_x, start_y)
 		return start_x, start_y, dir
 	}
 
 	if tiles[next_y][next_x].t == TILE {
-		// fmt.Printf("Found tile at (%d, %d)\n", next_x, next_y)
+		fmt.Printf("Found tile at (%d, %d)\n", next_x, next_y)
 		return next_x, next_y, dir
 	}
 
-	// fmt.Printf("Found tile we were already at (%d, %d)\n", next_x, next_y)
+	fmt.Printf("Found tile we were already at (%d, %d)\n", next_x, next_y)
 	return next_x, next_y, dir
 }
 
@@ -270,7 +271,7 @@ func WalkMap() {
 
 	// find starting tile, face right starting from 0,0
 	dir = RIGHT
-	x, y = FindFirstTile(0, 0, dir)
+	x, y, dir = FindFirstTile(0, 0, dir)
 
 	for _, i := range instructions {
 		// fmt.Printf("I: (%d,%d) %s : %s\n", x, y, DirStr(dir), i)
