@@ -214,11 +214,12 @@ func FindAdjacentElves(t *Tile) Moves {
 func WalkMap() {
 	var startDir int = NORTH
 	var proposedMoves ProposedMoves
-	var noOneMoved = true
+	var noOneMoved bool
 
 	PrintMap()
-	for r := 0; r < 10; r++ {
+	for r := 0; ; r++ {
 
+		noOneMoved = true
 		proposedMoves = make(ProposedMoves, 0)
 
 		// PrintMap()
@@ -281,7 +282,7 @@ func WalkMap() {
 		}
 
 		if noOneMoved {
-			fmt.Printf("No one moved in round %d\n", r)
+			fmt.Printf("No one moved in round %d\n", r+1)
 			break
 		}
 
@@ -355,7 +356,7 @@ func LoadMap(filePath string) {
 }
 
 func main() {
-	LoadMap("../sample_map.txt")
-	// LoadMap("../puzzle_map.txt")
+	// LoadMap("../sample_map.txt")
+	LoadMap("../puzzle_map.txt")
 	WalkMap()
 }
