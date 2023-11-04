@@ -31,5 +31,5 @@ func readFile(filePath string) {
 }
 
 func main() {
-	readFile("numbers.txt")
+	readFile("/Users/wayne/go/src/AOC2022/data/01/a/numbers.txt")
 }

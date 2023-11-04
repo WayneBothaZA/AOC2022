@@ -146,7 +146,7 @@ func readFile(filePath string) {
 		o_item = ConvertItem(o)
 		m_item = ConvertItem(m)
 
-		result, itemScore, resultScore := CalcScore(o_item, m_item)
+		itemScore, resultScore := CalcScore(o_item, m_item)
 		roundScore := itemScore + resultScore
 
 		fmt.Printf("%v,%v,%v,%d+%d=%d,%d\n", o_item.Name, m_item.Name, result.Name, itemScore, resultScore, roundScore, Total)

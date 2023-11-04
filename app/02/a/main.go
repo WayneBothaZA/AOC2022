@@ -118,5 +118,5 @@ func readFile(filePath string) {
 }
 
 func main() {
-	readFile("../sample.txt")
+	readFile("/Users/wayne/go/src/AOC2022/data/02/a/sample.txt")
 }
